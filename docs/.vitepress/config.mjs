@@ -81,9 +81,9 @@ const ORGANIZATION = {
 // FAQ rich results). Composite answers are concatenated exactly as the
 // template renders them, including link texts.
 const faqItemsFromStrings = (s) => [
+  [s.faqAgentsQ, s.faqAgentsA.trim()],
   [s.faqGdprQ, s.faqGdprA.trim()],
   [s.faqMigrateQ, s.faqMigrateA.trim()],
-  [s.faqBotsQ, s.faqBotsA.trim()],
   [s.faqCostQ, s.faqCostA.trim()],
   [s.faqOpenQ, `${s.faqOpenA1}${s.faqOpenLink}${s.faqOpenA2}`.trim()],
   [
@@ -135,23 +135,22 @@ const UI = {
     openSourceCaptcha: "Open-source CAPTCHA",
     mobileBotProtection: "Mobile form bot protection",
     quickstart: "Quickstart",
-    api: "API",
-    options: "Options",
+    options: "Configuration",
     widget: "Widget",
     usage: "Usage",
-    programmatic: "Programmatic mode",
+    invisible: "Invisible",
     floating: "Floating mode",
-    libraries: "Libraries",
-    core: "Core",
+    core: "Core library",
     community: "Community libraries",
-    details: "Details",
-    effectiveness: "Effectiveness",
     instrumentation: "Instrumentation",
-    hashwx: "HashWX proof of work",
-    workings: "How does Cap work?",
+    hashwx: "HashWX",
     benchmark: "Benchmark",
     compliance: "Compliance",
     demo: "Demo",
+    server: "Server",
+    howItWorks: "How it works",
+    overview: "Overview",
+    more: "More",
     editLink: "Edit this page on GitHub",
     outline: "On this page",
     prev: "Previous page",
@@ -177,23 +176,22 @@ const UI = {
     openSourceCaptcha: "开源 CAPTCHA",
     mobileBotProtection: "移动端表单机器人防护",
     quickstart: "快速开始",
-    api: "API",
     options: "配置选项",
     widget: "验证组件",
     usage: "使用方法",
-    programmatic: "编程模式",
+    invisible: "隐形模式",
     floating: "浮动模式",
-    libraries: "库",
     core: "核心库",
     community: "社区库",
-    details: "深入了解",
-    effectiveness: "有效性",
     instrumentation: "Instrumentation",
     hashwx: "HashWX 工作量证明",
-    workings: "Cap 是如何工作的？",
     benchmark: "性能基准",
     compliance: "合规",
     demo: "演示",
+    server: "服务端",
+    howItWorks: "工作原理",
+    overview: "概览",
+    more: "更多",
     editLink: "在 GitHub 上编辑此页",
     outline: "本页目录",
     prev: "上一页",
@@ -224,23 +222,22 @@ const UI = {
     openSourceCaptcha: "Open-Source-CAPTCHA",
     mobileBotProtection: "Bot-Schutz für mobile Formulare",
     quickstart: "Schnellstart",
-    api: "API",
     options: "Optionen",
     widget: "Widget",
     usage: "Verwendung",
-    programmatic: "Programmatischer Modus",
+    invisible: "Unsichtbarer Modus",
     floating: "Floating-Modus",
-    libraries: "Bibliotheken",
-    core: "Core",
+    core: "Core-Bibliothek",
     community: "Community-Bibliotheken",
-    details: "Details",
-    effectiveness: "Wirksamkeit",
     instrumentation: "Instrumentation",
     hashwx: "HashWX-Proof-of-Work",
-    workings: "Wie funktioniert Cap?",
     benchmark: "Benchmark",
     compliance: "Compliance",
     demo: "Demo",
+    server: "Server",
+    howItWorks: "Funktionsweise",
+    overview: "Überblick",
+    more: "Mehr",
     editLink: "Diese Seite auf GitHub bearbeiten",
     outline: "Auf dieser Seite",
     prev: "Vorherige Seite",
@@ -271,23 +268,22 @@ const UI = {
     openSourceCaptcha: "CAPTCHA open source",
     mobileBotProtection: "Protection anti-bot des formulaires mobiles",
     quickstart: "Démarrage rapide",
-    api: "API",
-    options: "Options",
+    options: "Configuration",
     widget: "Widget",
     usage: "Utilisation",
-    programmatic: "Mode programmatique",
+    invisible: "Mode invisible",
     floating: "Mode flottant",
-    libraries: "Bibliothèques",
-    core: "Core",
+    core: "Bibliothèque core",
     community: "Bibliothèques communautaires",
-    details: "En détail",
-    effectiveness: "Efficacité",
     instrumentation: "Instrumentation",
     hashwx: "Preuve de travail HashWX",
-    workings: "Comment fonctionne Cap ?",
     benchmark: "Benchmark",
     compliance: "Conformité",
     demo: "Démo",
+    server: "Serveur",
+    howItWorks: "Fonctionnement",
+    overview: "Vue d'ensemble",
+    more: "Plus",
     editLink: "Modifier cette page sur GitHub",
     outline: "Sur cette page",
     prev: "Page précédente",
@@ -318,23 +314,22 @@ const UI = {
     openSourceCaptcha: "CAPTCHA โอเพนซอร์ส",
     mobileBotProtection: "ป้องกันบอทในฟอร์มบนมือถือ",
     quickstart: "เริ่มต้นใช้งาน",
-    api: "API",
     options: "ตัวเลือกการตั้งค่า",
     widget: "วิดเจ็ต",
     usage: "วิธีใช้งาน",
-    programmatic: "โหมด programmatic",
+    invisible: "โหมดล่องหน",
     floating: "โหมดลอย",
-    libraries: "ไลบรารี",
     core: "ไลบรารีหลัก",
     community: "ไลบรารีจากชุมชน",
-    details: "เจาะลึก",
-    effectiveness: "ประสิทธิภาพ",
     instrumentation: "Instrumentation",
     hashwx: "พิสูจน์การทำงาน HashWX",
-    workings: "Cap ทำงานอย่างไร?",
     benchmark: "การวัดประสิทธิภาพ",
     compliance: "การปฏิบัติตามข้อกำหนด",
     demo: "เดโม",
+    server: "เซิร์ฟเวอร์",
+    howItWorks: "วิธีการทำงาน",
+    overview: "ภาพรวม",
+    more: "เพิ่มเติม",
     editLink: "แก้ไขหน้านี้บน GitHub",
     outline: "หัวข้อในหน้านี้",
     prev: "หน้าก่อนหน้า",
@@ -405,14 +400,13 @@ const mainSidebar = (loc) => {
   const p = LOCALE_INFO[loc].prefix;
   return [
     { text: t.quickstart, link: `${p}/guide/index.md` },
-    { text: t.featureComparison, link: `${p}/guide/alternatives.md` },
     {
-      text: "Standalone",
+      text: t.server,
       collapsed: false,
       items: [
-        { text: t.quickstart, link: `${p}/guide/standalone/index.md` },
-        { text: t.api, link: `${p}/guide/standalone/api.md` },
+        { text: "Standalone", link: `${p}/guide/standalone/index.md` },
         { text: t.options, link: `${p}/guide/standalone/options.md` },
+        { text: t.core, link: `${p}/guide/capjs-core.md` },
       ],
     },
     {
@@ -420,32 +414,31 @@ const mainSidebar = (loc) => {
       collapsed: false,
       items: [
         { text: t.usage, link: `${p}/guide/widget.md` },
-        { text: t.programmatic, link: `${p}/guide/programmatic.md` },
+        { text: t.invisible, link: `${p}/guide/invisible.md` },
         { text: t.floating, link: `${p}/guide/floating.md` },
       ],
     },
     {
-      text: t.libraries,
-      collapsed: true,
+      text: t.howItWorks,
+      collapsed: false,
       items: [
-        { text: t.core, link: `${p}/guide/capjs-core.md` },
-        { text: t.community, link: `${p}/guide/community.md` },
+        { text: t.overview, link: `${p}/guide/workings.md` },
+        { text: t.hashwx, link: `${p}/guide/hashwx.md` },
+        { text: t.instrumentation, link: `${p}/guide/instrumentation.md` },
       ],
     },
     {
-      text: t.details,
+      text: t.more,
       collapsed: true,
       items: [
-        { text: t.effectiveness, link: `${p}/guide/effectiveness.md` },
-        { text: t.instrumentation, link: `${p}/guide/instrumentation.md` },
-        { text: t.hashwx, link: `${p}/guide/hashwx.md` },
-        { text: t.workings, link: `${p}/guide/workings.md` },
+        { text: t.featureComparison, link: `${p}/guide/alternatives.md` },
+        { text: t.community, link: `${p}/guide/community.md` },
+        { text: t.benchmark, link: `${p}/guide/benchmark.md` },
+        { text: t.compliance, link: `${p}/guide/compliance.md` },
+        { text: t.demo, link: `${p}/guide/demo.md` },
+        { text: "GitHub", link: GITHUB_URL },
       ],
     },
-    { text: t.benchmark, link: `${p}/guide/benchmark.md` },
-    { text: t.compliance, link: `${p}/guide/compliance.md` },
-    { text: t.demo, link: `${p}/guide/demo.md` },
-    { text: "GitHub", link: GITHUB_URL },
   ];
 };
 
@@ -513,48 +506,44 @@ function breadcrumbList(pageData) {
 
 const SEARCH_TEXT = {
   zh: {
-    placeholder: "搜索文档",
     button: "搜索",
-    cancel: "取消",
+    details: "显示详细列表",
     reset: "清除查询",
+    back: "关闭搜索",
     noResults: "没有找到相关结果",
     select: "选择",
     navigate: "切换",
     close: "关闭",
-    searchBy: "搜索服务由",
   },
   de: {
-    placeholder: "Doku durchsuchen",
     button: "Suchen",
-    cancel: "Abbrechen",
+    details: "Detailansicht",
     reset: "Suche zurücksetzen",
-    noResults: "Keine Ergebnisse gefunden",
+    back: "Suche schließen",
+    noResults: "Keine Ergebnisse für",
     select: "auswählen",
     navigate: "navigieren",
     close: "schließen",
-    searchBy: "Suche von",
   },
   fr: {
-    placeholder: "Rechercher dans la doc",
     button: "Rechercher",
-    cancel: "Annuler",
+    details: "Afficher les détails",
     reset: "Effacer la recherche",
-    noResults: "Aucun résultat trouvé",
+    back: "Fermer la recherche",
+    noResults: "Aucun résultat pour",
     select: "sélectionner",
     navigate: "naviguer",
     close: "fermer",
-    searchBy: "Recherche par",
   },
   th: {
-    placeholder: "ค้นหาเอกสาร",
     button: "ค้นหา",
-    cancel: "ยกเลิก",
+    details: "แสดงรายละเอียด",
     reset: "ล้างคำค้นหา",
-    noResults: "ไม่พบผลลัพธ์",
+    back: "ปิดการค้นหา",
+    noResults: "ไม่พบผลลัพธ์สำหรับ",
     select: "เลือก",
     navigate: "เลื่อน",
     close: "ปิด",
-    searchBy: "ค้นหาโดย",
   },
 };
 
@@ -564,18 +553,14 @@ const SEARCH_LOCALES = Object.fromEntries(
     return [
       loc,
       {
-        placeholder: s.placeholder,
         translations: {
           button: { buttonText: s.button, buttonAriaLabel: s.button },
           modal: {
-            searchBox: { cancelButtonText: s.cancel, resetButtonTitle: s.reset },
-            noResultsScreen: { noResultsText: s.noResults },
-            footer: {
-              selectText: s.select,
-              navigateText: s.navigate,
-              closeText: s.close,
-              searchByText: s.searchBy,
-            },
+            displayDetails: s.details,
+            resetButtonTitle: s.reset,
+            backButtonTitle: s.back,
+            noResultsText: s.noResults,
+            footer: { selectText: s.select, navigateText: s.navigate, closeText: s.close },
           },
         },
       },
@@ -610,6 +595,16 @@ const SITE_META = {
   },
 };
 
+const navFor = (loc) => {
+  const h = { ...homeV2Strings.en, ...homeV2Strings[loc === "root" ? "en" : loc] };
+  const p = LOCALE_INFO[loc].prefix;
+  return [
+    { text: h.navDocs, link: `${p}/guide/`, activeMatch: `^${p}/guide/(?!demo|alternatives)` },
+    { text: h.navDemo, link: `${p}/guide/demo.html`, activeMatch: `^${p}/guide/demo` },
+    { text: h.ftCompareLabel, link: `${p}/guide/alternatives.html`, activeMatch: `^${p}/guide/alternatives` },
+  ];
+};
+
 const localeConfig = (loc) => {
   const t = UI[loc];
   const p = LOCALE_INFO[loc].prefix;
@@ -618,11 +613,7 @@ const localeConfig = (loc) => {
     lang: LOCALE_INFO[loc].lang,
     ...SITE_META[loc],
     themeConfig: {
-      nav: [
-        { text: t.home, link: `${p}/` },
-        { text: t.docs, link: `${p}/guide/` },
-        { text: "GitHub", link: GITHUB_URL },
-      ],
+      nav: navFor(loc),
       sidebar: sidebarFor(loc),
       editLink: {
         pattern: `${GITHUB_URL}/edit/main/docs/:path`,
@@ -657,7 +648,25 @@ export default withMermaid({
     ...Object.fromEntries(LOCALES.map((loc) => [loc, localeConfig(loc)])),
   },
   vite: {
-    plugins: [llmstxt({ ignoreFiles: LOCALES.map((l) => `${l}/**`) })],
+    plugins: [
+      llmstxt({
+        ignoreFiles: [
+          ...LOCALES.map((l) => `${l}/**`),
+          "guide/standalone/installation.md",
+          "guide/standalone/usage.md",
+          "guide/effectiveness.md",
+          "guide/solver.md",
+        ],
+      }),
+    ],
+    resolve: {
+      alias: [
+        {
+          find: /^.*\/VPLocalNavOutlineDropdown\.vue$/,
+          replacement: fileURLToPath(new URL("./theme/components/OutlineDropdown.vue", import.meta.url)),
+        },
+      ],
+    },
   },
   srcExclude: ["public/**"],
   transformPageData(pageData) {
@@ -903,24 +912,25 @@ export default withMermaid({
     [
       "script",
       {
-        src: "https://cdn.jsdelivr.net/npm/cap-widget@0.1.50",
+        src: "https://cdn.jsdelivr.net/npm/cap-widget@0.1.58",
         async: true,
       },
     ],
   ],
   themeConfig: {
     search: {
-      provider: "algolia",
+      provider: "local",
       options: {
-        appId: "B8THEYC8QW",
-        apiKey: "ebdc4d8bd68e388cbeca09c14b982a85",
-        indexName: "cap-tiagorangel",
-        // Note: no per-locale `searchParameters.facetFilters` needed here.
-        // VitePress's VPAlgoliaSearchBox strips any user-provided `lang:*`
-        // facet filter and always injects `lang:<current locale lang>` itself,
-        // so English pages query with lang:en-US and zh pages with lang:zh-CN
-        // automatically (requires `lang` to be a facet attribute on the index).
+        detailedView: true,
         locales: SEARCH_LOCALES,
+        _render(src, env, md) {
+          const html = md.render(src, env);
+          if (env.frontmatter?.search === false) return "";
+          const path = env.relativePath.replace(/^(zh|de|fr|th)\//, "");
+          if (/^guide\/(best-captcha-alternatives|captcha-conversion-rate|open-source-captcha|mobile-form-bot-protection)\.md$/.test(path)) return "";
+          if (/^guide\/alternatives\/(?!migrate-from-recaptcha)/.test(path)) return "";
+          return html;
+        },
       },
     },
     logo: "/logo.png",
@@ -930,11 +940,7 @@ export default withMermaid({
       pattern: "https://github.com/tiagozip/cap/edit/main/docs/:path",
     },
 
-    nav: [
-      { text: "Home", link: "/" },
-      { text: "Docs", link: "/guide" },
-      { text: "GitHub", link: GITHUB_URL },
-    ],
+    nav: navFor("root"),
 
     sidebar: sidebarFor("root"),
 
@@ -949,6 +955,7 @@ export default withMermaid({
     },
   },
   markdown: {
+    theme: "catppuccin-mocha",
     image: {
       lazyLoading: true,
     },
