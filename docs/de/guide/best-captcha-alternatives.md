@@ -5,7 +5,7 @@ faq:
   - q: Was ist die beste CAPTCHA-Alternative?
     a: "Das hängt von deinen Prioritäten ab. Cap passt am besten für quelloffenen, selbst gehosteten, datenschutzfreundlichen Schutz ohne Gebühren. Turnstile passt zu Cloudflare-nativen Stacks, FriendlyCaptcha zu Teams, die einen gemanagten EU-PoW-Anbieter wollen, und ALTCHA zu Minimalisten."
   - q: Was ist die beste quelloffene CAPTCHA-Alternative?
-    a: "Cap und ALTCHA. Cap ergänzt den Proof-of-Work um einen Standalone-Server, ein Dashboard, Instrumentation-Challenges und eine reCAPTCHA-kompatible API; ALTCHA bleibt eine schlanke Bibliothek."
+    a: "Cap und ALTCHA. Cap ergänzt den Proof-of-Work um einen selbst gehosteten Server, ein Dashboard, Instrumentation-Challenges und eine reCAPTCHA-kompatible API; ALTCHA bleibt eine schlanke Bibliothek."
   - q: Was ist das beste selbst gehostete CAPTCHA?
     a: "Cap. Ein kleines Docker-Deployment, ein Web-Dashboard, Unterstützung mehrerer Site-Keys und kein Round-Trip zu Dritten. Nichts über deine Besucher verlässt deine Server."
   - q: Welche CAPTCHA-Alternative ist am besten für den Datenschutz?
@@ -49,7 +49,7 @@ Die vollständige Matrix mit 12 Kriterien (Fehlerquoten, DSGVO, Anpassbarkeit, R
 Cap ist ein quelloffenes (Apache 2.0), selbst gehostetes CAPTCHA, das Automatisierung teuer macht, statt zu raten, wer ein Mensch ist. Nutzer klicken eine Checkbox; eine Proof-of-Work-Challenge läuft still in ihrem Browser, während [Instrumentation-Challenges](./instrumentation.md) prüfen, dass die Umgebung ein echter Browser ist.
 
 - **Am besten für:** Teams, die volle Kontrolle, echten Datenschutz und bei jedem Traffic-Volumen keine Rechnung wollen.
-- **Stärken:** zwei unabhängige Verifizierungsebenen (PoW plus Instrumentation), Widget mit etwa 20 KB, deterministische Schwierigkeit pro Site-Key, reCAPTCHA-kompatible `/siteverify`-API, Dashboard mit Verwaltung mehrerer Site-Keys, funktioniert in Brave, Librewolf und dem Tor Browser.
+- **Stärken:** zwei unabhängige Verifizierungsebenen (PoW plus Instrumentation), Widget mit etwa 20 KB, Schwierigkeit pro Site-Key, die Regeln für verdächtigen Traffic erhöhen, reCAPTCHA-kompatible `/siteverify`-API, Dashboard mit Verwaltung mehrerer Site-Keys, funktioniert in Brave, Librewolf und dem Tor Browser.
 - **Kompromisse:** Du hostest es selbst (ein Docker-Container plus Valkey; ein 5-$-VPS deckt die meisten Seiten ab). Wenn du gar keinen Backend-Dienst betreiben willst, passt eine gemanagte Option besser.
 - **Datenschutz:** keine Cookies, kein Fingerprinting, keine Drittanbieter-Aufrufe. Daten verlassen nie deine Server. Siehe [Compliance](./compliance.md).
 
@@ -126,7 +126,7 @@ Weitere Optionen (MTCaptcha, GeeTest, Arkose Labs) behandelt die Seite [Funktion
 ## Wie wählst du eine CAPTCHA-Alternative?
 
 1. **Willst du partout nichts hosten?** Turnstile (kostenlos, Cloudflare entscheidet) oder FriendlyCaptcha (kostenpflichtig, EU, PoW).
-2. **Willst du Open Source und Kontrolle?** Cap, entweder als vollständiger Standalone-Server mit Dashboard oder als [minimale Server-Bibliothek](./capjs-core.md); ALTCHA ist eine weitere solide Nur-Bibliothek-Option.
+2. **Willst du Open Source und Kontrolle?** Cap, entweder als selbst gehosteter Server mit Dashboard oder als [minimale Server-Bibliothek](./capjs-core.md); ALTCHA ist eine weitere solide Nur-Bibliothek-Option.
 3. **Ist Conversion deine wichtigste Kennzahl?** Meide alles mit Bilderrätseln. Siehe [CAPTCHA und Conversion-Rate](./captcha-conversion-rate.md).
 4. **Überwiegend mobiler Traffic?** Siehe [Bot-Schutz für mobile Formulare](./mobile-form-bot-protection.md).
 5. **WordPress mit wenig Traffic?** SilentShields Plugin ist bequem; Cap funktioniert dort über Community-Integrationen ebenfalls, ohne Quote.
@@ -139,7 +139,7 @@ Das hängt von deinen Prioritäten ab. Cap passt am besten für quelloffenen, se
 
 ### Was ist die beste quelloffene CAPTCHA-Alternative?
 
-Cap und ALTCHA. Cap ergänzt den Proof-of-Work um einen Standalone-Server, ein Dashboard, Instrumentation-Challenges und eine reCAPTCHA-kompatible API; ALTCHA bleibt eine schlanke Bibliothek. Siehe [Open-Source-CAPTCHA-Optionen](./open-source-captcha.md).
+Cap und ALTCHA. Cap ergänzt den Proof-of-Work um einen selbst gehosteten Server, ein Dashboard, Instrumentation-Challenges und eine reCAPTCHA-kompatible API; ALTCHA bleibt eine schlanke Bibliothek. Siehe [Open-Source-CAPTCHA-Optionen](./open-source-captcha.md).
 
 ### Was ist das beste selbst gehostete CAPTCHA?
 

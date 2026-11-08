@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useData } from "vitepress";
 import VPNavBarSearch from "vitepress/dist/client/theme-default/components/VPNavBarSearch.vue";
 import VPNavBarTranslations from "vitepress/dist/client/theme-default/components/VPNavBarTranslations.vue";
+import DashboardDemo from "./DashboardDemo.vue";
 import HomeDemo from "./HomeDemo.vue";
 import HomeOdometer from "./HomeOdometer.vue";
 import HomeToolbox from "./HomeToolbox.vue";
@@ -18,6 +19,7 @@ const trustParts = computed(() => t.value.trustLine.split("{n}"));
 const numLang = computed(() => (localeIndex.value === "root" ? "en" : localeIndex.value));
 const lp = computed(() => (localeIndex.value === "root" ? "" : `/${localeIndex.value}`));
 
+const starsFallback = __CAP_STARS__;
 const faq = computed(() => {
   const s = t.value;
   const p = lp.value;
@@ -28,7 +30,7 @@ const faq = computed(() => {
     { q: s.faqCostQ, a: s.faqCostA },
     {
       q: s.faqOpenQ,
-      html: `${s.faqOpenA1}<a href="${p}/guide/standalone/">${s.faqOpenLink}</a>${s.faqOpenA2}`,
+      html: `${s.faqOpenA1}<a href="${p}/guide/capd/">${s.faqOpenLink}</a>${s.faqOpenA2}`,
     },
     {
       q: s.faqAltQ,
@@ -52,11 +54,60 @@ const checkIds = [
 
 const ghPath = "M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.69-3.87-1.54-3.87-1.54-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.24 3.34.95.1-.74.4-1.24.72-1.53-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18.91-.25 1.89-.38 2.86-.38.97 0 1.95.13 2.86.38 2.19-1.49 3.15-1.18 3.15-1.18.62 1.58.23 2.75.11 3.04.73.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.25 5.67.41.35.78 1.05.78 2.11 0 1.52-.01 2.75-.01 3.12 0 .31.21.67.8.56C20.71 21.38 24 17.08 24 12c0-6.27-5.23-11.5-11.5-11.5z";
 
-const browserChecks = [
+const browserChecks = ref([
   { label: "Verify the browser", hint: "Check the browser environment.", on: true },
   { label: "Block detected browser automation", hint: "Reject detected automation tools.", on: true },
   { label: "Block automated clicks and typing", hint: "Experimental. Blocks repeated synthetic clicks or key presses.", on: false },
-];
+]);
+const difficulty = ref(1000000);
+const difficultyLabel = computed(() => difficulty.value.toLocaleString("en-US"));
+
+const toggleCheck = (i) => {
+  if (i > 0 && !browserChecks.value[0].on) return;
+  browserChecks.value[i].on = !browserChecks.value[i].on;
+};
+
+const agentResult = computed(() => {
+  const c = browserChecks.value;
+  if (!c[0].on) return { success: true, reason: null, blockedBy: [], riskFlags: [] };
+  const blockedBy = [];
+  const riskFlags = [];
+  (c[1].on ? blockedBy : riskFlags).push("webdriver_true", "headless_token");
+  (c[2].on ? blockedBy : riskFlags).push("interaction_synthetic_clicks");
+  const reason = blockedBy.includes("webdriver_true")
+    ? "instr_automated_browser"
+    : blockedBy.length
+      ? "instr_automated_interaction"
+      : null;
+  return { success: blockedBy.length === 0, reason, blockedBy, riskFlags };
+});
+
+const activeChecks = computed(() => [...agentResult.value.blockedBy, ...agentResult.value.riskFlags]);
+
+const resultLines = computed(() => {
+  const r = agentResult.value;
+  const ind = (n) => ({ t: " ".repeat(n), c: "j-p" });
+  const key = (k) => ({ t: `"${k}"`, c: "j-k" });
+  const str = (s) => ({ t: `"${s}"`, c: "j-s" });
+  const colon = { t: ": ", c: "j-p" };
+  const comma = { t: ",", c: "j-p" };
+
+  const entries = [[[ind(2), key("success"), colon, { t: String(r.success), c: r.success ? "j-true" : "j-b" }]]];
+  if (r.reason) entries.push([[ind(2), key("reason"), colon, str(r.reason)]]);
+  const list = r.blockedBy.length ? r.blockedBy : r.riskFlags;
+  const listKey = r.blockedBy.length ? "blockedBy" : "riskFlags";
+  if (list.length) {
+    const group = [[ind(2), key(listKey), { t: ": [", c: "j-p" }]];
+    list.forEach((f, i) => group.push([ind(4), str(f), ...(i < list.length - 1 ? [comma] : [])]));
+    group.push([{ t: "  ]", c: "j-p" }]);
+    entries.push(group);
+  }
+  entries.forEach((g, gi) => {
+    if (gi < entries.length - 1) g[g.length - 1] = [...g[g.length - 1], comma];
+  });
+
+  return [[{ t: "{", c: "j-p" }], ...entries.flat(), [{ t: "}", c: "j-p" }]];
+});
 
 const fromWidget = ref(false);
 const fromWidgetHost = ref("");
@@ -74,6 +125,45 @@ const track = (name, props) => {
     window.plausible?.(name, props ? { props } : undefined);
   } catch {}
 };
+
+const agents = [
+  {
+    name: "Claude Code",
+    fg: "#d97757",
+    d: "m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z",
+  },
+  {
+    name: "Codex",
+    fg: "var(--text)",
+    d: "M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z",
+  },
+  {
+    name: "Cursor",
+    fg: "var(--text)",
+    d: "M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23",
+  },
+];
+const promptCopied = ref(false);
+let promptTimer = 0;
+const copyPrompt = async () => {
+  const text = "Read https://trycap.dev/prompt.md and follow it to add Cap to this project.";
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    window.open("/prompt.md", "_blank", "noopener");
+    return;
+  }
+  track("cta_click", { cta: "copy_prompt", location: "hero" });
+  promptCopied.value = false;
+  requestAnimationFrame(() => {
+    promptCopied.value = true;
+  });
+  clearTimeout(promptTimer);
+  promptTimer = setTimeout(() => {
+    promptCopied.value = false;
+  }, 2200);
+};
+cleanups.push(() => clearTimeout(promptTimer));
 
 const dismissWidgetBanner = () => {
   fromWidget.value = false;
@@ -223,7 +313,7 @@ onBeforeUnmount(() => {
             <a class="gh-link nav-link" href="https://github.com/tiagozip/cap" data-cta="github" data-cta-location="nav">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path :d="ghPath" /></svg>
               <span class="sr-only">GitHub, </span>
-              <span><span class="homev2-gh-stars">6.2k</span><span class="gh-stars-label">{{ ` ${t.navGithubStars}` }}</span></span>
+              <span><span class="homev2-gh-stars">{{ starsFallback }}</span><span class="gh-stars-label">{{ ` ${t.navGithubStars}` }}</span></span>
             </a>
           </div>
         </div>
@@ -243,7 +333,22 @@ onBeforeUnmount(() => {
                 </h1>
                 <p class="lead">{{ t.heroLead }}</p>
                 <div class="actions">
-                  <a class="btn btn-ghost" :href="`${lp}/guide/`" data-cta="docs" data-cta-location="hero">{{ t.heroCtaDocs }}</a>
+                  <button type="button" class="btn btn-ghost prompt-btn" :class="{ 'is-copied': promptCopied }" @click="copyPrompt">
+                    <span class="pb-stack" aria-hidden="true">
+                      <span v-for="(a, n) in agents" :key="a.name" class="pb-agent" :style="{ '--n': n, '--fg': a.fg }"
+                        ><span class="pb-disc"><svg viewBox="0 0 24 24"><path :d="a.d" /></svg></span
+                      ></span>
+                    </span>
+                    <span class="prompt-label">
+                      <span class="pl-idle">{{ t.heroCtaPrompt }}</span>
+                      <span class="pl-done">{{ t.heroCtaCopied }}</span>
+                    </span>
+                    <span class="pb-icons" aria-hidden="true">
+                      <svg class="pb-copy" viewBox="0 0 16 16"><rect x="5.25" y="5.25" width="8" height="8" rx="2" /><path d="M10.75 3.5v-.25a1.5 1.5 0 0 0-1.5-1.5h-5a1.5 1.5 0 0 0-1.5 1.5v5a1.5 1.5 0 0 0 1.5 1.5h.25" /></svg>
+                      <svg class="pb-check" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-6.5" /></svg>
+                    </span>
+                    <span class="sr-only" role="status">{{ promptCopied ? t.heroCtaCopied : "" }}</span>
+                  </button>
                   <a class="btn btn-primary" :href="`${lp}/guide/`" data-cta="start" data-cta-location="hero">{{ t.heroCtaStart }}</a>
                 </div>
               </div>
@@ -265,6 +370,26 @@ onBeforeUnmount(() => {
         </div>
       </section>
 
+      <section id="dashboard" class="band">
+        <div class="wrap">
+          <div class="frame section">
+            <div class="head">
+              <h2>{{ t.dashTitle }}</h2>
+              <div class="head-side">
+                <p>{{ t.dashBody }}</p>
+              </div>
+            </div>
+            <DashboardDemo class="shot" theme="dark" :title="t.dashAlt" :activating="t.dashActivating" />
+            <dl class="facts">
+              <div v-for="[title, body] in t.dashFacts" :key="title">
+                <dt>{{ title }}</dt>
+                <dd>{{ body }}</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
       <section id="agents" class="band">
         <div class="wrap">
           <div class="frame section">
@@ -277,69 +402,49 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="agents">
-              <div class="ui-window settings" aria-hidden="true">
+              <div class="ui-window settings">
                 <div class="settings-row">
-                  <span class="settings-label">HashWX difficulty</span>
-                  <span class="settings-value">1,000,000</span>
+                  <label class="settings-label" for="agents-difficulty">HashWX difficulty</label>
+                  <span class="settings-value">{{ difficultyLabel }}</span>
                 </div>
-                <div class="slider"><span></span></div>
+                <input
+                  id="agents-difficulty"
+                  class="slider"
+                  type="range"
+                  min="50000"
+                  max="5000000"
+                  step="50000"
+                  v-model.number="difficulty"
+                />
                 <div class="settings-group">Browser checks</div>
-                <div v-for="opt in browserChecks" :key="opt.label" class="toggle-row">
+                <button
+                  v-for="(opt, i) in browserChecks"
+                  :key="opt.label"
+                  type="button"
+                  class="toggle-row"
+                  role="switch"
+                  :aria-checked="opt.on"
+                  :disabled="i > 0 && !browserChecks[0].on"
+                  @click="toggleCheck(i)"
+                >
                   <span class="toggle" :class="{ on: opt.on }"><span></span></span>
                   <span>
                     <span class="toggle-label">{{ opt.label }}</span>
                     <span class="toggle-hint">{{ opt.hint }}</span>
                   </span>
-                </div>
+                </button>
               </div>
 
               <div class="agents-result">
                 <div class="ui-window">
                   <div class="ui-title">{{ t.agentsResultLabel }}</div>
-                  <pre class="json"><code><span class="j-p">{</span>
-  <span class="j-k">"success"</span>: <span class="j-b">false</span>,
-  <span class="j-k">"reason"</span>: <span class="j-s">"instr_automated_browser"</span>,
-  <span class="j-k">"blockedBy"</span>: [
-    <span class="j-s">"webdriver_true"</span>,
-    <span class="j-s">"headless_token"</span>
-  ]
-<span class="j-p">}</span></code></pre>
+                  <pre class="json" aria-live="polite"><code><span v-for="(line, li) in resultLines" :key="li" class="j-line"><span v-for="(tok, ti) in line" :key="ti" :class="tok.c">{{ tok.t }}</span></span></code></pre>
                 </div>
                 <ul class="checks">
-                  <li v-for="id in checkIds" :key="id"><code>{{ id }}</code></li>
+                  <li v-for="id in checkIds" :key="id" :class="{ active: activeChecks.includes(id) }"><code>{{ id }}</code></li>
                 </ul>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="dashboard" class="band">
-        <div class="wrap">
-          <div class="frame section">
-            <div class="head">
-              <h2>{{ t.dashTitle }}</h2>
-              <div class="head-side">
-                <p>{{ t.dashBody }}</p>
-              </div>
-            </div>
-            <figure class="shot">
-              <img
-                src="/assets/home/dashboard.webp"
-                srcset="/assets/home/dashboard-1x.webp 1440w, /assets/home/dashboard.webp 2880w"
-                sizes="(max-width: 1120px) 100vw, 1024px"
-                width="2880"
-                height="1800"
-                :alt="t.dashAlt"
-                loading="lazy"
-              />
-            </figure>
-            <dl class="facts">
-              <div v-for="[title, body] in t.dashFacts" :key="title">
-                <dt>{{ title }}</dt>
-                <dd>{{ body }}</dd>
-              </div>
-            </dl>
           </div>
         </div>
       </section>
@@ -435,7 +540,7 @@ onBeforeUnmount(() => {
             <div>
               <h3>{{ t.ftProductLabel }}</h3>
               <a :href="`${lp}/guide/`" data-cta="docs" data-cta-location="footer">{{ t.ftQuickstart }}</a>
-              <a :href="`${lp}/guide/standalone/`">Standalone</a>
+              <a :href="`${lp}/guide/capd/`">capd</a>
               <a :href="`${lp}/guide/widget.html`">{{ t.ftWidget }}</a>
               <a :href="`${lp}/guide/demo.html`" data-cta="demo" data-cta-location="footer">{{ t.ftDemo }}</a>
             </div>
@@ -728,6 +833,137 @@ html.home-v2-active main.main {
     transition: none;
   }
 }
+@property --pb-spread {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+#homev2 .prompt-btn {
+  --pb-step: 15px;
+  padding-inline: 12px 14px;
+  gap: 10px;
+  transition:
+    scale 160ms var(--ease-out),
+    --pb-spread 320ms var(--ease-out);
+}
+#homev2 .prompt-btn::before {
+  background: linear-gradient(var(--btn-fill), var(--btn-fill)), var(--ground);
+}
+#homev2 .prompt-btn .pb-stack {
+  display: flex;
+}
+#homev2 .prompt-btn .pb-agent {
+  position: relative;
+  z-index: calc(3 - var(--n));
+  margin-left: calc(var(--pb-step) - 16px);
+  translate: calc(var(--n) * var(--pb-spread)) 0;
+  padding-block: 8px;
+  margin-block: -8px;
+  mask: radial-gradient(circle at calc(50% - var(--pb-step) - var(--pb-spread)) 50%, transparent 10.5px, #000 11px);
+}
+#homev2 .prompt-btn .pb-agent:first-child {
+  margin-left: 0;
+  mask: none;
+}
+#homev2 .prompt-btn .pb-disc {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  color: var(--fg);
+}
+#homev2 .prompt-btn .pb-disc svg {
+  width: 15px;
+  height: 15px;
+  fill: currentColor;
+}
+#homev2 .prompt-label {
+  display: grid;
+  justify-items: start;
+}
+#homev2 .prompt-label > span {
+  grid-area: 1 / 1;
+  transition:
+    opacity 200ms var(--ease-out),
+    scale 200ms var(--ease-out),
+    filter 200ms var(--ease-out);
+}
+#homev2 .prompt-label .pl-done,
+#homev2 .prompt-btn.is-copied .pl-idle {
+  opacity: 0;
+  scale: 0.9;
+  filter: blur(4px);
+}
+#homev2 .prompt-btn.is-copied .pl-done {
+  opacity: 1;
+  scale: 1;
+  filter: blur(0);
+}
+#homev2 .pb-icons {
+  display: grid;
+  margin-left: -2px;
+  color: var(--text-secondary);
+}
+#homev2 .pb-icons svg {
+  grid-area: 1 / 1;
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    opacity 200ms var(--ease-out),
+    scale 200ms var(--ease-out),
+    filter 200ms var(--ease-out);
+}
+#homev2 .pb-check,
+#homev2 .prompt-btn.is-copied .pb-copy {
+  opacity: 0;
+  scale: 0.25;
+  filter: blur(4px);
+}
+#homev2 .prompt-btn.is-copied .pb-check {
+  opacity: 1;
+  scale: 1;
+  filter: blur(0);
+  color: var(--success, #a6e3a1);
+}
+#homev2 .prompt-btn.is-copied .pb-disc {
+  animation: agent-hop 520ms var(--ease-out) calc(var(--n) * 70ms);
+}
+@keyframes agent-hop {
+  35% {
+    translate: 0 -4px;
+  }
+  70% {
+    translate: 0 1px;
+  }
+}
+@media (hover: hover) {
+  #homev2 .prompt-btn:hover {
+    --btn-fill: #ffffff10;
+  }
+  #homev2 .prompt-btn:hover::before {
+    filter: none;
+  }
+  #homev2 .prompt-btn:hover {
+    --pb-spread: 1.5px;
+  }
+  #homev2 .prompt-btn:hover .pb-icons {
+    color: var(--text);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #homev2 .prompt-btn .pb-agent,
+  #homev2 .prompt-btn .pb-disc,
+  #homev2 .prompt-label > span,
+  #homev2 .pb-icons svg {
+    transition: none;
+    animation: none;
+  }
+}
 #homev2 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -933,11 +1169,14 @@ html.home-v2-active main.main {
   #homev2 .hero .lead {
     animation: hero-rise 1000ms var(--ease-out) 520ms both;
   }
-  #homev2 .hero .actions > a {
+  #homev2 .hero .actions > .btn {
     animation: hero-rise 900ms var(--ease-out) 640ms both;
   }
-  #homev2 .hero .actions > a + a {
+  #homev2 .hero .actions > .btn + .btn {
     animation-delay: 710ms;
+  }
+  #homev2 .hero .pb-agent {
+    animation: agent-land 700ms var(--ease-out) calc(860ms + (2 - var(--n)) * 110ms) both;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -963,6 +1202,18 @@ html.home-v2-active main.main {
     opacity: 0;
     transform: translateY(14px);
     filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@keyframes agent-land {
+  from {
+    opacity: 0;
+    transform: translateX(-10px) scale(0.6);
+    filter: blur(4px);
   }
   to {
     opacity: 1;
@@ -1068,28 +1319,18 @@ html.home-v2-active main.main {
   font-variant-numeric: tabular-nums;
 }
 #homev2 .slider {
-  position: relative;
-  height: 6px;
-  margin: 14px 0 22px;
-  border-radius: 3px;
-  background: #ffffff0f;
+  appearance: auto;
+  width: 100%;
+  height: 18px;
+  margin: 10px 0 18px;
+  background: transparent;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
-#homev2 .slider span {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 20%;
+#homev2 .slider:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
   border-radius: 3px;
-  background: var(--accent);
-}
-#homev2 .slider span::after {
-  content: "";
-  position: absolute;
-  right: -8px;
-  top: -5px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--accent);
 }
 #homev2 .settings-group {
   padding-top: 18px;
@@ -1102,6 +1343,28 @@ html.home-v2-active main.main {
   gap: 14px;
   align-items: flex-start;
   padding-block: 10px;
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+#homev2 .toggle-row:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+#homev2 .toggle-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+#homev2 .toggle {
+  transition: background 160ms ease;
+}
+#homev2 .toggle span {
+  transition: left 160ms ease;
 }
 #homev2 .toggle {
   flex-shrink: 0;
@@ -1158,8 +1421,14 @@ html.home-v2-active main.main {
 #homev2 .j-b {
   color: var(--danger);
 }
+#homev2 .j-true {
+  color: var(--success);
+}
 #homev2 .j-p {
   color: var(--text-faint);
+}
+#homev2 .j-line {
+  display: block;
 }
 #homev2 .checks {
   list-style: none;
@@ -1174,24 +1443,16 @@ html.home-v2-active main.main {
   box-shadow: inset 0 0 0 1px var(--edge);
   font-size: 0.75rem;
   color: var(--text-secondary);
+  transition:
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+#homev2 .checks li.active {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 60%, transparent);
 }
 #homev2 .shot {
   margin-top: 56px;
-  padding: 8px;
-  border-radius: 18px;
-  background: var(--panel);
-  box-shadow:
-    inset 0 0 0 1px var(--edge),
-    0 2px 4px #00000033,
-    0 24px 48px #00000040;
-}
-#homev2 .shot img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 11px;
-  outline: 1px solid #ffffff14;
-  outline-offset: -1px;
 }
 #homev2 .facts {
   margin-top: 40px;
@@ -1553,20 +1814,6 @@ html.home-v2-active main.main {
   }
   #homev2 .json {
     font-size: 0.75rem;
-  }
-  #homev2 .shot {
-    padding: 4px;
-    border-radius: 12px;
-  }
-  #homev2 .shot {
-    overflow: hidden;
-  }
-  #homev2 .shot img {
-    width: 210%;
-    max-width: none;
-    margin-left: -50%;
-    border-radius: 0;
-    outline: 0;
   }
   #homev2 .foot-cols {
     grid-template-columns: 1fr 1fr;

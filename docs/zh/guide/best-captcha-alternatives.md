@@ -5,7 +5,7 @@ faq:
   - q: 最好的 CAPTCHA 替代方案是什么？
     a: "取决于你的优先级。如果你想要开源、自托管、隐私优先且零费用的防护，Cap 是最佳选择。Turnstile 适合 Cloudflare 原生技术栈，FriendlyCaptcha 适合想要托管式欧盟 PoW 服务商的团队，ALTCHA 适合极简主义者。"
   - q: 最好的开源 CAPTCHA 替代方案是什么？
-    a: "Cap 和 ALTCHA。Cap 在工作量证明之上还提供独立服务端、仪表盘、instrumentation 质询以及兼容 reCAPTCHA 的 API；ALTCHA 则保持为一个精简的库。"
+    a: "Cap 和 ALTCHA。Cap 在工作量证明之上还提供自托管服务端、仪表盘、instrumentation 质询以及兼容 reCAPTCHA 的 API；ALTCHA 则保持为一个精简的库。"
   - q: 最好的自托管 CAPTCHA 是什么？
     a: "Cap。小巧的 Docker 部署、Web 仪表盘、多站点密钥支持，且无需与第三方往返通信。访客的任何信息都不会离开你的服务器。"
   - q: 哪个 CAPTCHA 替代方案在隐私方面最好？
@@ -49,7 +49,7 @@ Cap 是一个免费、开源的 CAPTCHA 替代方案，用工作量证明和 [in
 Cap 是一个开源（Apache 2.0）、自托管的 CAPTCHA，它让自动化变得昂贵，而不是去猜测谁是人类。用户只需点击一个复选框；工作量证明质询在其浏览器中静默运行，同时 [instrumentation 质询](./instrumentation.md)验证运行环境是真实浏览器。
 
 - **最适合：** 想要完全掌控、真正的隐私、且在任何流量规模下都无需付费的团队。
-- **核心优势：** 两层独立验证（PoW + instrumentation）、约 20 KB 的验证组件、可按站点密钥控制的确定性难度、兼容 reCAPTCHA 的 `/siteverify` API、支持多站点密钥管理的仪表盘、在 Brave、Librewolf 和 Tor Browser 中均可正常工作。
+- **核心优势：** 两层独立验证（PoW + instrumentation）、约 20 KB 的验证组件、按站点密钥设置、并可用规则对可疑流量提高的难度、兼容 reCAPTCHA 的 `/siteverify` API、支持多站点密钥管理的仪表盘、在 Brave、Librewolf 和 Tor Browser 中均可正常工作。
 - **权衡：** 需要自己托管（一个 Docker 容器加 Valkey；一台 5 美元的 VPS 能满足大多数网站）。如果你完全不想运行任何后端服务，托管式方案更合适。
 - **隐私：** 无 Cookie、无指纹追踪、无第三方调用。数据永远不会离开你的服务器。见[合规性](./compliance.md)。
 
@@ -126,7 +126,7 @@ Google 的老牌产品，分为 v2（"我不是机器人"）和 v3（隐形、�
 ## 如何选择 CAPTCHA 替代方案？
 
 1. **完全不想托管任何东西？** Turnstile（免费，但裁决权在 Cloudflare）或 FriendlyCaptcha（付费、欧盟、PoW）。
-2. **想要开源和掌控权？** 选 Cap：既可以用带仪表盘的完整 Standalone 服务端，也可以用[极简服务端库](./capjs-core.md)；ALTCHA 是另一个不错的纯库选择。
+2. **想要开源和掌控权？** 选 Cap：既可以用带仪表盘的自托管服务端，也可以用[极简服务端库](./capjs-core.md)；ALTCHA 是另一个不错的纯库选择。
 3. **转化率是你的核心指标？** 避开一切带图片谜题的方案。见 [CAPTCHA 与转化率](./captcha-conversion-rate.md)。
 4. **流量以移动端为主？** 见[移动端表单的机器人防护](./mobile-form-bot-protection.md)。
 5. **低流量的 WordPress 网站？** SilentShield 的插件很方便；Cap 通过社区集成也能用，而且没有配额限制。
@@ -139,7 +139,7 @@ Google 的老牌产品，分为 v2（"我不是机器人"）和 v3（隐形、�
 
 ### 最好的开源 CAPTCHA 替代方案是什么？
 
-Cap 和 ALTCHA。Cap 在工作量证明之上还提供独立服务端、仪表盘、instrumentation 质询以及兼容 reCAPTCHA 的 API；ALTCHA 则保持为一个精简的库。见[开源 CAPTCHA 选项](./open-source-captcha.md)。
+Cap 和 ALTCHA。Cap 在工作量证明之上还提供自托管服务端、仪表盘、instrumentation 质询以及兼容 reCAPTCHA 的 API；ALTCHA 则保持为一个精简的库。见[开源 CAPTCHA 选项](./open-source-captcha.md)。
 
 ### 最好的自托管 CAPTCHA 是什么？
 

@@ -5,7 +5,7 @@ faq:
   - q: Cap est-il meilleur que SilentShield ?
     a: "Pour les équipes qui veulent un CAPTCHA open source et auto-hébergé, sans frais par requête et avec un contrôle complet sur la difficulté et les données, Cap est le choix le plus solide. SilentShield convient aux équipes qui veulent un service géré, invisible et fondé sur l'analyse comportementale, et qui acceptent un quota de requêtes et une dépendance à un tiers."
   - q: Cap est-il open source ?
-    a: "Oui. Cap est entièrement open source sous licence Apache 2.0, y compris le widget, le serveur et le déploiement Docker standalone."
+    a: "Oui. Cap est entièrement open source sous licence Apache 2.0, y compris le widget, le serveur et capd, le déploiement Docker."
   - q: SilentShield est-il open source ?
     a: "Non. SilentShield est un service hébergé propriétaire. Sa logique de détection s'exécute sur les serveurs de SilentShield et ne peut être ni auditée ni auto-hébergée."
   - q: Lequel est le meilleur pour l'auto-hébergement ?
@@ -35,7 +35,7 @@ Cap est le meilleur choix pour les équipes qui veulent un CAPTCHA open source e
 | Gratuit | ✅ À tout volume | 🟨 Gratuit jusqu'à 500 requêtes/mois |
 | Frais par requête | ✅ Aucun | ❌ Par paliers : 9 €/mois pour 5 000, 29 €/mois pour 25 000 requêtes |
 | Mécanisme principal | Preuve de travail et instrumentation | Analyse comportementale (souris, clavier, défilement, rythme) |
-| Difficulté déterministe | ✅ Vous la fixez, par clé de site | ❌ Le modèle décide |
+| Difficulté sous votre contrôle | ✅ Vous la fixez par clé de site, et vos règles l'augmentent pour le trafic suspect | ❌ Le modèle décide |
 | Logique de détection auditable | ✅ Code lisible | ❌ Propriétaire |
 | Données sortant de votre infrastructure | ✅ Jamais | ❌ Signaux d'interaction traités par SilentShield |
 | Fonctionne sans profilage comportemental | ✅ | ❌ Les signaux comportementaux sont le produit |
@@ -54,7 +54,7 @@ Cap est le meilleur choix pour les équipes qui veulent un CAPTCHA open source e
 
 - **Open source de bout en bout.** Cap est sous Apache 2.0 : widget, serveur, tableau de bord. Vous pouvez auditer précisément ce qui s'exécute dans les navigateurs de vos utilisateurs et sur vos serveurs. La détection de SilentShield est par conception une boîte noire.
 - **Auto-hébergé, sans quotas.** Cap tourne sur votre propre infrastructure (un VPS à 5 $ suffit à la plupart des sites), sans frais par requête ni plafond mensuel. L'offre gratuite de SilentShield s'arrête à 500 requêtes par mois, un seuil que des formulaires actifs franchissent vite.
-- **Le verdict vous appartient.** Les systèmes comportementaux produisent un score, et quand le modèle se trompe, vous n'avez aucun bouton à tourner. La difficulté de Cap est déterministe et se configure par clé de site : vous décidez du coût d'un défi, et chaque utilisateur dispose d'un chemin garanti.
+- **Le verdict vous appartient.** Les systèmes comportementaux produisent un score, et quand le modèle se trompe, vous n'avez aucun bouton à tourner. Avec Cap, vous fixez la difficulté par clé de site et [l'augmentez avec des règles](../capd/index.md#adaptive-difficulty) pour le trafic auquel vous ne faites pas confiance. Vous décidez du coût d'un défi, et chaque utilisateur dispose d'un chemin garanti.
 - **Fondé sur le coût, pas sur la devinette.** L'analyse comportementale est un problème de classification, et les bots qui rejouent des entrées humaines enregistrées ou utilisent une automatisation de navigateur avec des mouvements de curseur humanisés attaquent directement le classifieur. La preuve de travail de Cap impose un coût de calcul réel qui tient même face à un bot au comportement parfait, et les [défis d'instrumentation](../instrumentation.md) ajoutent une seconde couche indépendante.
 - **Aucun tiers dans le chemin de la requête.** Avec Cap, rien concernant vos visiteurs (ni leurs schémas d'interaction, ni leurs adresses IP) n'est envoyé à un éditeur. SilentShield est orienté RGPD et hébergé en Europe, mais son modèle exige tout de même de transmettre des signaux d'interaction à ses serveurs.
 - **Migration immédiate.** Le point d'accès `/siteverify` de Cap est compatible avec la forme de l'API reCAPTCHA : il s'insère dans du code de vérification existant en changeant une URL.
@@ -78,7 +78,7 @@ Pour les équipes qui veulent un CAPTCHA open source et auto-hébergé, sans fra
 
 ### Cap est-il open source ?
 
-Oui. Cap est entièrement open source sous licence Apache 2.0, y compris le widget, le serveur et le déploiement Docker standalone.
+Oui. Cap est entièrement open source sous licence Apache 2.0, y compris le widget, le serveur et capd, le déploiement Docker.
 
 ### SilentShield est-il open source ?
 
