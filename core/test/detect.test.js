@@ -341,6 +341,45 @@ describe("detectAutomation humans", () => {
     expect(detectAutomation(S).pass).toBe(true);
   });
 
+  test("an iPad in desktop mode passes with an iPad worker platform", () => {
+    const S = safariHuman();
+    S.maxTouchPoints = 5;
+    S.mainNav = nav({ ua: S.ua, brands: null });
+    S.workerNav = nav({ ua: S.ua, platform: "iPad", brands: null });
+    expect(detectAutomation(S).pass).toBe(true);
+  });
+
+  test("an iPad worker platform without touch still blocks", () => {
+    const S = safariHuman();
+    S.mainNav = nav({ ua: S.ua, brands: null });
+    S.workerNav = nav({ ua: S.ua, platform: "iPad", brands: null });
+    expect(detectAutomation(S).blockedBy).toContain("worker_mismatch");
+  });
+
+  test("Safari reporting Apple GPU and compiling Metal passes", () => {
+    const S = safariHuman();
+    S.glsh = { r: "Apple GPU", t: "metal" };
+    expect(detectAutomation(S).riskFlags).not.toContain("shader_mismatch");
+  });
+
+  test("hinted text on ChromeOS at 1x passes", () => {
+    const S = chromeHuman();
+    S.ua =
+      "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36";
+    S.screen = { width: 1366, height: 768, dpr: 1 };
+    S.fontWidths = ints(17);
+    expect(detectAutomation(S).blockedBy).not.toContain("geometry_quantized");
+  });
+
+  test("hinted text on Linux at 1x passes", () => {
+    const S = chromeHuman();
+    S.ua =
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36";
+    S.screen = { width: 1920, height: 1080, dpr: 1 };
+    S.fontWidths = ints(17);
+    expect(detectAutomation(S).blockedBy).not.toContain("geometry_quantized");
+  });
+
   test("juggler flag on a non-gecko engine is ignored", () => {
     const S = safariHuman();
     S.juggler = true;
@@ -355,6 +394,24 @@ describe("detectAutomation bots", () => {
     const r = detectAutomation(S);
     expect(r.pass).toBe(false);
     expect(r.blockedBy).toEqual(["geometry_quantized"]);
+  });
+
+  test("whole-pixel text on Linux at 2x still blocks", () => {
+    const S = chromeHuman();
+    S.ua =
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36";
+    S.screen = { width: 1920, height: 1080, dpr: 2 };
+    S.fontWidths = ints(17);
+    expect(detectAutomation(S).blockedBy).toContain("geometry_quantized");
+  });
+
+  test("whole-pixel text on ChromeOS at a fractional scale still blocks", () => {
+    const S = chromeHuman();
+    S.ua =
+      "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36";
+    S.screen = { width: 1366, height: 768, dpr: 1.25 };
+    S.fontWidths = ints(17);
+    expect(detectAutomation(S).blockedBy).toContain("geometry_quantized");
   });
 
   test("font widths measured in an unrendered frame are all zero", () => {
@@ -754,5 +811,180 @@ describe("malformed probe values", () => {
       valid: false,
       reason: "failed_challenge",
     });
+  });
+});
+
+describe("software_renderer", () => {
+  test("SwiftShader WebGL is a risk flag, not a block", () => {
+    const S = chromeHuman();
+    S.mainNav = {
+      ...(S.mainNav ?? {}),
+      gl: "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero)), SwiftShader driver)",
+    };
+    const r = detectAutomation(S);
+    expect(r.pass).toBe(true);
+    expect(r.riskFlags).toContain("software_renderer");
+  });
+
+  test("a hardware renderer is clean", () => {
+    const S = chromeHuman();
+    S.mainNav = {
+      ...(S.mainNav ?? {}),
+      gl: "ANGLE (Apple, ANGLE Metal Renderer: Apple M2, Unspecified Version)",
+    };
+    expect(detectAutomation(S).riskFlags).not.toContain("software_renderer");
+  });
+});
+
+describe("fingerprint consistency checks", () => {
+  const real = () => ({
+    ...chromeHuman(),
+    hev: {
+      pv: "27.2.0",
+      ar: "arm",
+      fv: "151.0.0.0",
+      bi: "64",
+      fl: "Google Chrome,Chromium",
+    },
+    cv: [1, 2486],
+    na: 127,
+    ig: [],
+    sd: [],
+    no: [],
+    glsh: {
+      r: "ANGLE (Apple, ANGLE Metal Renderer: Apple M3, Unspecified Version)",
+      t: "metal",
+    },
+    gpu: { v: "apple", a: "metal-3", f: false, n: false },
+    voices: [180, 12],
+    fm: 1156.99,
+    fontWidths: [
+      1200.87, 1156.99, 1083.7, 1200.87, 1156.96, 1080.18, 1156.99, 1244.6,
+      1198.23, 1156.99, 1156.99, 1156.99, 1203.86, 1156.99, 1156.99, 1156.99,
+      1156.99,
+    ],
+    host: { nav: {}, ha: ["lang", "class"] },
+  });
+  const failed = (S) =>
+    detectAutomation(S)
+      .checks.filter((c) => !c.passed)
+      .map((c) => c.id);
+
+  test("a real Chrome on Apple Silicon passes all of them", () => {
+    const r = detectAutomation(real());
+    expect(r.pass).toBe(true);
+    expect(failed(real())).toEqual([]);
+  });
+
+  test("canvas noise flags without blocking", () => {
+    const S = { ...real(), cv: [0, 2486] };
+    const r = detectAutomation(S);
+    expect(r.pass).toBe(true);
+    expect(r.riskFlags).toContain("canvas_noise");
+  });
+
+  test("x86 client hints on an ARM CPU block", () => {
+    const S = real();
+    S.hev = { ...S.hev, ar: "x86" };
+    expect(detectAutomation(S).blockedBy).toContain("arch_mismatch");
+  });
+
+  test("Android in desktop mode passes with x86 client hints", () => {
+    const S = real();
+    S.hev = { ...S.hev, ar: "x86" };
+    S.mainNav = { ...S.mainNav, platform: "Linux armv81" };
+    expect(failed(S)).not.toContain("arch_mismatch");
+  });
+
+  test("x86 client hints on ARM still block on a desktop platform", () => {
+    const S = real();
+    S.hev = { ...S.hev, ar: "x86" };
+    S.mainNav = { ...S.mainNav, platform: "Win32" };
+    expect(detectAutomation(S).blockedBy).toContain("arch_mismatch");
+  });
+
+  test("x86 client hints on an x86 CPU pass", () => {
+    const S = { ...real(), na: 255 };
+    S.hev = { ...S.hev, ar: "x86" };
+    expect(failed(S)).not.toContain("arch_mismatch");
+  });
+
+  test("init script globals flag", () => {
+    const S = { ...real(), ig: ["__pwInitScripts"] };
+    expect(detectAutomation(S).riskFlags).toContain("injected_globals");
+  });
+
+  test("forged isTrusted blocks, redefined descriptors flag", () => {
+    const S = { ...real(), sd: ["isTrusted", "screen", "toStringProxy"] };
+    const r = detectAutomation(S);
+    expect(r.blockedBy).toContain("devtools_globals");
+    expect(r.riskFlags).toContain("stealth_descriptors");
+  });
+
+  test("navigator properties added back flag", () => {
+    const S = { ...real(), no: ["languages"] };
+    expect(detectAutomation(S).riskFlags).toContain("navigator_order");
+  });
+
+  test("a Direct3D renderer compiling Metal shaders flags", () => {
+    const S = real();
+    S.glsh = {
+      r: "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      t: "metal",
+    };
+    const r = detectAutomation(S);
+    expect(r.riskFlags).toContain("shader_mismatch");
+    expect(r.blockedBy ?? []).not.toContain("shader_mismatch");
+  });
+
+  test("a Metal renderer compiling GLSL flags", () => {
+    const S = real();
+    S.glsh = { ...S.glsh, t: "glsl" };
+    expect(detectAutomation(S).riskFlags).toContain("shader_mismatch");
+  });
+
+  test("Direct3D compiling GLSL passes, as Chrome 157 on Windows does", () => {
+    const S = real();
+    S.glsh = {
+      r: "ANGLE (Intel, Intel(R) UHD Graphics (0x0000A78B) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      t: "glsl",
+    };
+    expect(detectAutomation(S).riskFlags).not.toContain("shader_mismatch");
+  });
+
+  test("WebGL and WebGPU vendors disagreeing flags", () => {
+    const S = { ...real(), gpu: { v: "nvidia", a: "", f: false, n: false } };
+    expect(detectAutomation(S).riskFlags).toContain("webgpu_mismatch");
+  });
+
+  test("a WebGPU fallback adapter counts as a software renderer", () => {
+    const S = { ...real(), gpu: { v: "apple", a: "", f: true, n: false } };
+    expect(detectAutomation(S).riskFlags).toContain("software_renderer");
+  });
+
+  test("Google Chrome with no Google voices flags", () => {
+    const S = { ...real(), voices: [40, 0] };
+    expect(detectAutomation(S).riskFlags).toContain("voices_missing");
+  });
+
+  test("Chromium without Google voices is fine", () => {
+    const S = { ...real(), voices: [180, 0] };
+    S.uaData = { mobile: false, brands: ["Chromium/151", "Not.A/Brand/99"] };
+    expect(failed(S)).not.toContain("voices_missing");
+  });
+
+  test("claiming Windows without Segoe UI flags", () => {
+    const S = real();
+    S.ua = S.ua.replace(
+      "Macintosh; Intel Mac OS X 10_15_7",
+      "Windows NT 10.0; Win64; x64",
+    );
+    expect(detectAutomation(S).riskFlags).toContain("os_fonts_mismatch");
+  });
+
+  test("automation attributes on the root element flag", () => {
+    const S = real();
+    S.host = { nav: {}, ha: ["lang", "data-playwright-id"] };
+    expect(detectAutomation(S).riskFlags).toContain("html_automation_attr");
   });
 });

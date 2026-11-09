@@ -78,7 +78,9 @@ Deleting the key makes each token single-use.
 
 ## HashWX {#format-2-hashwx}
 
-Without options, `generateChallenge` issues SHA-256 proof of work. [HashWX](./hashwx.md) resists GPUs far better, and capd uses it for new keys. Opt in with the format-2 API:
+`generateChallenge` issues [HashWX](./hashwx.md) proof of work by default, the same format capd uses for new keys. It resists GPUs far better than SHA-256. `instrumentation: true` and `behavior` add an instrumentation challenge next to it.
+
+To list the protocols yourself, pass them with `format: 2`:
 
 ```js
 return await generateChallenge(SECRET, {
@@ -87,7 +89,7 @@ return await generateChallenge(SECRET, {
 });
 ```
 
-The widget detects the format on its own, and `validateChallenge` handles both. Always pass `protocols` with format 2. Without it, the challenge uses the deprecated RSW protocol, which needs an RSA keypair in `keypair` or a minter in `rsw`.
+`format: 1` switches back to SHA-256 proof of work, and so does passing `challengeCount`, `challengeSize` or `challengeDifficulty` without a `format`. The widget detects the format on its own, and `validateChallenge` handles both. HashWX needs widget 0.1.58 or later, so update a pinned widget before you update the library.
 
 | Option | Default | What it does |
 | --- | --- | --- |
@@ -227,7 +229,7 @@ With behavior on, a successful result has `behavior: { score, verdict, flags, si
 | `instrumentation` | `false` | See [instrumentation](#instrumentation). |
 | `instrumentationGenerator` | `generateInstrumentation` | Async function that generates the instrumentation script. |
 | `behavior` | `false` | See [behavior and agents](#behavior-and-agents). |
-| `format`, `protocols` | format 1 | See [HashWX](#format-2-hashwx). |
+| `format`, `protocols` | format 2 with HashWX | See [HashWX](#format-2-hashwx). Passing `keypair` or `rsw` without `protocols` picks the deprecated RSW protocol. |
 | `hashwxDifficulty`, `hashwxChallengeCount`, `hashwxNoncesPerHash` | see [HashWX](#format-2-hashwx) | HashWX settings for format 2. |
 | `keypair`, `t`, `rsw` | none | Settings for the deprecated RSW protocol. |
 
@@ -253,7 +255,7 @@ Format 1 returns `{ challenge, token, expires, instrumentation? }`, and format 2
 
 On success it returns `{ success: true, token, tokenKey, expires, scope, iat, riskFlags }`, plus `behavior` or `agent` as described in [behavior and agents](#behavior-and-agents). `riskFlags` lists signals that don't block on their own, like `native_tamper` or `legacy_widget`, so you can raise the difficulty for that visitor. The instrumentation page lists the [browser check flags](./instrumentation.md#automated-browser-detection) and the [behavior flags](./instrumentation.md#behavior-scoring).
 
-On failure it returns `{ success: false, reason }`. Instrumentation failures also have `instr_error: true`, `instr_automated_browser` and `instr_automated_interaction` have a `blockedBy` list, and behavior failures have `behavior`. Every `reason` is listed in the [error codes table](./troubleshooting/instrumentation.md#error-codes).
+On failure it returns `{ success: false, reason }`. Instrumentation failures also have `instr_error: true`, `instr_automated_browser` and `instr_automated_interaction` have a `blockedBy` list, and behavior failures have `behavior`. Every `reason` is listed in the [error codes table](./error-codes.md).
 
 ### Lower-level exports
 

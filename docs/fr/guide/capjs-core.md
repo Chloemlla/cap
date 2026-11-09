@@ -78,7 +78,9 @@ Supprimer la clé rend chaque jeton à usage unique.
 
 ## HashWX {#format-2-hashwx}
 
-Sans options, `generateChallenge` émet une preuve de travail SHA-256. [HashWX](./hashwx.md) résiste bien mieux aux GPU, et capd l'utilise pour les nouvelles clés. Activez-le avec l'API au format 2 :
+`generateChallenge` émet par défaut une preuve de travail [HashWX](./hashwx.md), le même format que capd utilise pour les nouvelles clés. Il résiste bien mieux aux GPU que SHA-256. `instrumentation: true` et `behavior` ajoutent un défi d'instrumentation.
+
+Pour choisir les protocoles vous-même, passez-les avec `format: 2` :
 
 ```js
 return await generateChallenge(SECRET, {
@@ -87,7 +89,7 @@ return await generateChallenge(SECRET, {
 });
 ```
 
-Le widget détecte le format automatiquement, et `validateChallenge` gère les deux. Passez toujours `protocols` avec le format 2. Sans cette option, le défi utilise le protocole RSW déprécié, qui nécessite une paire de clés RSA dans `keypair` ou un générateur dans `rsw`.
+`format: 1` revient à la preuve de travail SHA-256, tout comme passer `challengeCount`, `challengeSize` ou `challengeDifficulty` sans `format`. Le widget détecte le format automatiquement, et `validateChallenge` gère les deux. HashWX nécessite le widget 0.1.58 ou plus récent, donc mettez à jour un widget épinglé avant la bibliothèque.
 
 | Option | Valeur par défaut | Description |
 | --- | --- | --- |
@@ -227,7 +229,7 @@ Avec le comportement activé, un résultat réussi contient `behavior: { score, 
 | `instrumentation` | `false` | Voir l'[instrumentation](#instrumentation). |
 | `instrumentationGenerator` | `generateInstrumentation` | Fonction asynchrone qui génère le script d'instrumentation. |
 | `behavior` | `false` | Voir [Comportement et agents](#behavior-and-agents). |
-| `format`, `protocols` | format 1 | Voir [HashWX](#format-2-hashwx). |
+| `format`, `protocols` | format 2 avec HashWX | Voir [HashWX](#format-2-hashwx). Passer `keypair` ou `rsw` sans `protocols` choisit le protocole RSW déprécié. |
 | `hashwxDifficulty`, `hashwxChallengeCount`, `hashwxNoncesPerHash` | voir [HashWX](#format-2-hashwx) | Réglages HashWX pour le format 2. |
 | `keypair`, `t`, `rsw` | aucune | Réglages du protocole RSW déprécié. |
 
@@ -252,7 +254,7 @@ Le format 1 renvoie `{ challenge, token, expires, instrumentation? }`, et le for
 
 En cas de succès, elle renvoie `{ success: true, token, tokenKey, expires, scope, iat, riskFlags }`, ainsi que `behavior` ou `agent` comme décrit dans [Comportement et agents](#behavior-and-agents). `riskFlags` liste les signaux qui ne bloquent pas à eux seuls, comme `native_tamper` ou `legacy_widget`, afin que vous puissiez augmenter la difficulté pour ce visiteur. La page sur l'instrumentation liste les [indicateurs de vérification du navigateur](./instrumentation.md#automated-browser-detection) et les [indicateurs de comportement](./instrumentation.md#behavior-scoring).
 
-En cas d'échec, elle renvoie `{ success: false, reason }`. Les échecs d'instrumentation contiennent aussi `instr_error: true`, `instr_automated_browser` et `instr_automated_interaction` contiennent une liste `blockedBy`, et les échecs de comportement contiennent `behavior`. Chaque `reason` figure dans le [tableau des codes d'erreur](./troubleshooting/instrumentation.md#error-codes).
+En cas d'échec, elle renvoie `{ success: false, reason }`. Les échecs d'instrumentation contiennent aussi `instr_error: true`, `instr_automated_browser` et `instr_automated_interaction` contiennent une liste `blockedBy`, et les échecs de comportement contiennent `behavior`. Chaque `reason` figure dans le [tableau des codes d'erreur](./error-codes.md).
 
 ### Exports de bas niveau {#lower-level-exports}
 
