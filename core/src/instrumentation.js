@@ -386,7 +386,7 @@ function buildProbe(P) {
   const nv = rVar();
   const gpP = rVar();
   const vcP = rVar();
-  const collect = `function(){var n=navigator,tz=null,b=null;try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){}try{b=n.userAgentData?n.userAgentData.brands.map(function(x){return x.brand+"/"+x.version}).join(","):null}catch(e){}var gl=null;try{var c=new OffscreenCanvas(1,1).getContext("webgl");if(c){var x=c.getExtension("WEBGL_debug_renderer_info");gl=x?c.getParameter(x.UNMASKED_RENDERER_WEBGL):null;var lc=c.getExtension("WEBGL_lose_context");if(lc)lc.loseContext()}}catch(e){}return {ua:n.userAgent,platform:n.platform,languages:(n.languages||[]).join(","),hc:n.hardwareConcurrency,tz:tz,brands:b,brave:!!n.brave,gl:gl}}`;
+  const collect = `function(){var n=navigator,tz=null,b=null;try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone}catch(e){}try{b=n.userAgentData?n.userAgentData.brands.map(function(x){return x.brand+"/"+x.version}).join(","):null}catch(e){}var gl=null;try{var c=new OffscreenCanvas(1,1).getContext("webgl");if(c){var x=c.getExtension("WEBGL_debug_renderer_info");gl=x?c.getParameter(x.UNMASKED_RENDERER_WEBGL):null;var lc=c.getExtension("WEBGL_lose_context");if(lc)lc.loseContext()}}catch(e){}return {ua:n.userAgent,platform:n.platform,languages:(n.languages||[]).join(","),hc:n.hardwareConcurrency,tz:tz,brands:b,brave:!!n.brave,ddg:typeof n.duckduckgo==="object",gl:gl}}`;
   return (
     `var ${P}={};function ${sf}(k,f){try{${P}[k]=f()}catch(e){${P}[k]=null}}` +
     `function ${nat}(fn){try{return /\\{\\s*\\[native code\\]\\s*\\}/.test(Function.prototype.toString.call(fn))}catch(e){return true}}` +
@@ -539,13 +539,13 @@ function buildBlockChecks(b, id, hF, hSet, h) {
 const CDP_PROBE = `function(E,C,w,n){var p=0,k=0,e,s=Object.getOwnPropertyDescriptor(E,"prepareStackTrace");if(!s||s.configurable){Object.defineProperty(E,"prepareStackTrace",{configurable:true,writable:true,value:function(x){if(x===e)p++;return String(x)}});try{for(var i=0;i<3;i++){e=new E("x");C.debug(e)}}finally{if(s)Object.defineProperty(E,"prepareStackTrace",s);else delete E.prepareStackTrace}}var X=class extends E{get name(){k++;return "Error"}};for(var j=0;j<3;j++)C.debug(new X("x"));return p>0||(k>6&&(typeof w.chrome!=="undefined"||!!n.userAgentData))}`;
 
 const COLLECTOR_HEAD = `function($W,$F,$cfg,$cdp){
-var $ap=Reflect.apply,$gopd=Object.getOwnPropertyDescriptor,$ael=$F.EventTarget.prototype.addEventListener,$rel0=$F.EventTarget.prototype.removeEventListener,$fnow=$F.Performance.prototype.now;
+var $ap=Reflect.apply,$gopd=Object.getOwnPropertyDescriptor,$ael=$F.EventTarget.prototype.addEventListener,$rel0=$F.EventTarget.prototype.removeEventListener,$fnow=$F.Performance.prototype.now,$tsg=$gopd($F.Event.prototype,"timeStamp").get;
 var $gets={};["performance","innerWidth","innerHeight"].forEach(function($k){try{var $d=$gopd($F,$k)||$gopd($F.Window.prototype,$k);if($d&&$d.get)$gets[$k]=$d.get}catch($x){}});
 var $read=function($o,$k){try{return $o[$k]}catch($x){}try{if($gets[$k])return $ap($gets[$k],$o,[])}catch($x){}return null};
 var $D=$W.document,$perf=$read($W,"performance"),$offs=[],$seen=[],$opt={capture:true,passive:true},$mo=null,$io=null,$ia=null,$trace=null;
 var $pnow=function(){try{return $ap($fnow,$perf,[])}catch($x){return $ap($fnow,$F.performance,[])}};
 var $origin=$pnow();
-var $on=function($t,$y,$f,$o){var $p=$o||$opt;$ap($ael,$t,[$y,$f,$p]);$offs.push(function(){$ap($rel0,$t,[$y,$f,$p])})};
+var $on=function($t,$y,$f,$o){var $p=$o||$opt,$g=function($e){try{$ap($tsg,$e,[])}catch($x){return}return $ap($f,this,[$e])};$ap($ael,$t,[$y,$g,$p]);$offs.push(function(){$ap($rel0,$t,[$y,$g,$p])})};
 var $mark=function($c){if($seen.indexOf($c)<0)$seen.push($c)};
 var $scan=function($r){for(var $i=0;$i<$cfg.marks.length;$i++){var $m=$cfg.marks[$i];if($seen.indexOf($m[0])>=0)continue;try{if(($m[1]&&(($r.matches&&$r.matches($m[1]))||($r.querySelector&&$r.querySelector($m[1]))))||($m[2]&&$m[2].some(function($g){return $g.indexOf("navigator.")===0?$g.slice(10) in $W.navigator:$g in $W})))$mark($m[0])}catch($e){}}};
 var $comet=function(){try{var $h=$D.body||$D.documentElement;if($seen.indexOf("comet")>=0||!$h)return;var $d=$D.createElement("div");$d.id="pplx-agent-0_0-overlay-stop-button";$d.style.cssText="position:absolute;left:-99999px;visibility:hidden";$h.appendChild($d);var $s=$W.getComputedStyle($d);if($s.zIndex==="2147483647"&&$s.minHeight==="32px")$mark("comet");$d.remove()}catch($e){}};
@@ -590,7 +590,7 @@ return {v:1,res:isFinite($best)?Math.min(1000,$r1($best*1000)/1000):1000,now:$re
 const COLLECTOR_TAIL = `try{$scan($D)}catch($x){}$comet();
 if($cfg.bh||$cfg.ia){try{$mo=new $W.MutationObserver(function($rs){for(var $i=0;$i<$rs.length;$i++){var $r=$rs[$i];if($r.type==="attributes"){if(Object.prototype.hasOwnProperty.call($cfg.attrs,$r.attributeName))$mark($cfg.attrs[$r.attributeName]);continue}for(var $j=0;$j<$r.addedNodes.length;$j++){if($r.addedNodes[$j].nodeType===1)$scan($r.addedNodes[$j])}}});$mo.observe($D.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:Object.keys($cfg.attrs)})}catch($x){}}
 return {
-host:function(){var $o={};try{var $nv=$W.navigator;$o.nav={ua:$nv.userAgent,platform:$nv.platform,languages:($nv.languages||[]).join(","),hc:$nv.hardwareConcurrency,brands:$nv.userAgentData?$nv.userAgentData.brands.map(function($x){return $x.brand+"/"+$x.version}).join(","):null,webdriver:$nv.webdriver===true}}catch($x){}try{var $en=$F.Performance.prototype.getEntriesByType.call($perf,"navigation")[0];$o.doc=!!$en&&$en.nextHopProtocol===""&&$en.transferSize>0&&($en.deliveryType||"")===""&&$en.workerStart===0}catch($x){}try{$o.cdp=!!$cdp($W.Error,$W.console,$W,$W.navigator)}catch($x){}try{var $at=$D.documentElement.attributes,$an=[];for(var $i=0;$i<$at.length&&$an.length<16;$i++)$an.push(String($at[$i].name).slice(0,48));$o.ha=$an}catch($x){}return $o},
+host:function(){var $o={};try{var $nv=$W.navigator;$o.nav={ua:$nv.userAgent,platform:$nv.platform,languages:($nv.languages||[]).join(","),hc:$nv.hardwareConcurrency,brands:$nv.userAgentData?$nv.userAgentData.brands.map(function($x){return $x.brand+"/"+$x.version}).join(","):null,webdriver:$nv.webdriver===true,ddg:typeof $nv.duckduckgo==="object"}}catch($x){}try{var $en=$F.Performance.prototype.getEntriesByType.call($perf,"navigation")[0];$o.doc=!!$en&&$en.nextHopProtocol===""&&$en.transferSize>0&&($en.deliveryType||"")===""&&$en.workerStart===0}catch($x){}try{$o.cdp=!!$cdp($W.Error,$W.console,$W,$W.navigator)}catch($x){}try{var $at=$D.documentElement.attributes,$an=[];for(var $i=0;$i<$at.length&&$an.length<16;$i++)$an.push(String($at[$i].name).slice(0,48));$o.ha=$an}catch($x){}return $o},
 marks:function(){try{$scan($D)}catch($x){}$comet();return $seen.slice()},
 vp:function(){var $w=$read($W,"innerWidth"),$h=$read($W,"innerHeight");return typeof $w==="number"&&typeof $h==="number"?[$w,$h]:null},
 ia:function(){return $ia?$ia.slice():null},
@@ -601,7 +601,8 @@ stop:function(){for(var $i=0;$i<$offs.length;$i++){try{$offs[$i]()}catch($x){}}$
 const NATIVE_PRELUDE = String.raw`var $ap,$keys,$isArr,$sort,$cca,$fcc,$nts,$pnow,$pobj,$P,$ce=0;
 var $ok=(function(){try{var $fts=Function.prototype.toString,$app=Reflect.apply,$idx=String.prototype.indexOf;
 var $nat=function($f){return typeof $f==="function"&&$app($idx,$app($fts,$f,[]),["[native code]"])>0};
-var $list=[$fts,$app,$idx,Object.keys,Array.isArray,Array.prototype.sort,Array.prototype.slice,Array.prototype.indexOf,Array.prototype.push,String.prototype.charCodeAt,String.fromCharCode,Number.prototype.toString,Object.freeze,Object.defineProperty,Performance.prototype.now,JSON.parse,Math.round,Math.max,Math.min,eval,Function,EvalError,EventTarget.prototype.addEventListener];
+var $list=[$fts,$app,$idx,Object.keys,Array.isArray,Array.prototype.sort,Array.prototype.slice,Array.prototype.indexOf,Array.prototype.push,String.prototype.charCodeAt,String.fromCharCode,Number.prototype.toString,Object.freeze,Object.defineProperty,Performance.prototype.now,JSON.parse,Math.round,Math.max,Math.min,eval,Function,EvalError,Object.getOwnPropertyDescriptor(Event.prototype,"timeStamp").get];
+if(typeof EventTarget.prototype.addEventListener!=="function")return false;
 for(var $i=0;$i<$list.length;$i++)if(!$nat($list[$i]))return false;
 var $EE=EvalError,$ev=null,$fn=null;
 $app(EventTarget.prototype.addEventListener,document,["securitypolicyviolation",function($e){try{if($ce===1&&$e.isTrusted&&$e.blockedURI==="eval"&&$app($idx,""+$e.violatedDirective,["script-src"])===0)$ce=2}catch($x){}},true]);
