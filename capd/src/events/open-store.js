@@ -1,7 +1,61 @@
+import { existsSync, renameSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { clickhouseConfig } from "../config.js";
 import { createClickhouseStore } from "./clickhouse.js";
-import { createDuckdbStore } from "./duckdb.js";
+
+const NEWEST_READABLE_STORAGE = 67;
+
+export const storageVersion = async (path) => {
+  try {
+    const head = Buffer.from(await Bun.file(path).slice(0, 20).arrayBuffer());
+    if (head.length < 20 || head.toString("latin1", 8, 12) !== "DUCK")
+      return null;
+    return Number(head.readBigUInt64LE(12));
+  } catch {
+    return null;
+  }
+};
+
+const moveWithWal = (from, to) => {
+  renameSync(from, to);
+  if (existsSync(`${from}.wal`)) renameSync(`${from}.wal`, `${to}.wal`);
+};
+
+export async function convertFromDuckdb2(path) {
+  const version = await storageVersion(path);
+  if (version === null || version <= NEWEST_READABLE_STORAGE) return false;
+  const target = `${path}.converting`;
+  const backup = `${path}.duckdb2`;
+  rmSync(target, { force: true });
+  rmSync(`${target}.wal`, { force: true });
+  console.log(
+    "[cap] Converting the event store to the DuckDB 1.4 format. This runs once.",
+  );
+  const proc = Bun.spawn(
+    [
+      process.execPath,
+      join(import.meta.dir, "duckdb2-convert.js"),
+      path,
+      target,
+    ],
+    { stdout: "inherit", stderr: "inherit", env: process.env },
+  );
+  const code = await proc.exited;
+  moveWithWal(path, backup);
+  if (code !== 0) {
+    rmSync(target, { force: true });
+    rmSync(`${target}.wal`, { force: true });
+    console.error(
+      `[cap] Couldn't convert the event store, so Cap is starting a new one. The old file is at ${backup}.`,
+    );
+    return false;
+  }
+  moveWithWal(target, path);
+  console.log(
+    `[cap] Converted the event store. The old file is at ${backup}, and you can delete it once analytics look right.`,
+  );
+  return true;
+}
 
 const duckdbOptions = (env = process.env) => {
   const dir = env.DATA_DIR || join(import.meta.dir, "..", "..", "data");
@@ -11,6 +65,14 @@ const duckdbOptions = (env = process.env) => {
     threads: Math.max(1, Math.trunc(Number(env.DUCKDB_THREADS)) || 2),
   };
 };
+
+const openDuckdb = async () => {
+  const options = duckdbOptions();
+  if (options.path !== ":memory:") await convertFromDuckdb2(options.path);
+  const { createDuckdbStore } = await import("./duckdb.js");
+  return createDuckdbStore(options);
+};
+
 const [CLICKHOUSE, configError] = (() => {
   try {
     return [clickhouseConfig(), null];
@@ -30,7 +92,7 @@ export async function openStore(s) {
     await ch.init();
     return ch;
   }
-  return createDuckdbStore(duckdbOptions());
+  return openDuckdb();
 }
 
-export const fallbackStore = () => createDuckdbStore(duckdbOptions());
+export const fallbackStore = () => openDuckdb();
