@@ -9,6 +9,7 @@ COPY capd/package.json capd/bun.lock ./
 RUN bun install --frozen-lockfile
 COPY capd/vite.config.mjs ./
 COPY capd/dashboard dashboard
+COPY capd/src/policy src/policy
 RUN bun run build
 
 FROM base AS deps
@@ -44,7 +45,10 @@ COPY --from=deps --chown=bun:bun /usr/src/app/node_modules node_modules
 COPY --chown=bun:bun capd/src src
 COPY --chown=bun:bun capd/public public
 COPY --from=dashboard --chown=bun:bun /usr/src/app/public/dist public/dist
-RUN mkdir -p data && chown bun:bun data
+RUN apt-get update \
+  && apt-get upgrade -y --no-install-recommends \
+  && rm -rf /var/lib/apt/lists/* \
+  && mkdir -p data && chown bun:bun data
 
 USER bun
 VOLUME ["/usr/src/app/data"]
